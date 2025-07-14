@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.graphics.PixelFormat
 import android.media.AudioManager
 import android.os.IBinder
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -29,6 +30,8 @@ class VolumeOverlayService : Service() {
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         showOverlay()
         registerVolumeReceiver()
+        val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        Log.d("LOGASDF", "Current volume at start: $currentVolume")
         startForeground(1, NotificationCompat.Builder(this, "volume_overlay_channel")
             .setContentTitle("Volume Overlay")
             .setContentText("Overlay is running")
@@ -37,6 +40,15 @@ class VolumeOverlayService : Service() {
     }
 
     private fun showOverlay() {
+        // Check SYSTEM_ALERT_WINDOW permission before showing overlay
+        if (!android.provider.Settings.canDrawOverlays(this)) {
+            val intent = Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                android.net.Uri.parse("package:" + packageName))
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
+            Log.e("VolumeOverlayService", "SYSTEM_ALERT_WINDOW permission not granted. Requesting permission.")
+            return
+        }
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         overlayView = inflater.inflate(R.layout.overlay_volume, null)
         volumeText = overlayView!!.findViewById(R.id.volumeText)
@@ -63,6 +75,8 @@ class VolumeOverlayService : Service() {
         volumeReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 updateVolumeText()
+                val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+                Log.d("LOGASDF", "Current volume on event: $currentVolume")
             }
         }
         val filter = IntentFilter("android.media.VOLUME_CHANGED_ACTION")
@@ -83,4 +97,3 @@ class VolumeOverlayService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 }
-
