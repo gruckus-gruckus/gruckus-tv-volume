@@ -37,6 +37,8 @@ class VolumeOverlayService : Service() {
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         createNotificationChannel() // Ensure channel exists before startForeground
         showOverlay()
+        showOverlayInstantly()
+        scheduleHideOverlay()
         registerVolumeReceiver()
         val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
         Log.d("LOGASDF", "Current volume at start: $currentVolume")
