@@ -1,5 +1,10 @@
 package com.gruckus.tvvolume
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.media.AudioManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,6 +15,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -23,10 +31,18 @@ import androidx.tv.material3.Text
 import com.gruckus.tvvolume.ui.theme.GruckusTVVolumeTheme
 
 class MainActivity : ComponentActivity() {
+    private var volumeReceiver: BroadcastReceiver? = null
+
     @OptIn(ExperimentalTvMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+        val initialVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+
         setContent {
+            var volume by remember { mutableStateOf(initialVolume) }
+            var visible by remember { mutableStateOf(true) }
             GruckusTVVolumeTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -34,12 +50,29 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
                         VolumeDisplay(
-                            volume = 15, // Replace with actual volume value
-                            visible = true // Replace with actual visibility logic
+                            volume = volume,
+                            visible = visible
                         )
                     }
                 }
             }
+            // Register receiver for volume changes
+            volumeReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    val newVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+                    volume = newVolume
+                }
+            }
+            val filter = IntentFilter("android.media.VOLUME_CHANGED_ACTION")
+            registerReceiver(volumeReceiver, filter)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (volumeReceiver != null) {
+            unregisterReceiver(volumeReceiver)
+            volumeReceiver = null
         }
     }
 }
