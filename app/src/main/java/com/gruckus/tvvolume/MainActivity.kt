@@ -36,6 +36,13 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalTvMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Request SYSTEM_ALERT_WINDOW permission if not granted
+        if (!android.provider.Settings.canDrawOverlays(this)) {
+            val intent = Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                android.net.Uri.parse("package:" + packageName))
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
+        }
         // Start the overlay service
         val intent = Intent(this, VolumeOverlayService::class.java)
         startForegroundService(intent)
