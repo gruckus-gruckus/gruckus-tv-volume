@@ -36,36 +36,11 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalTvMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-        val initialVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-
-        setContent {
-            var volume by remember { mutableStateOf(initialVolume) }
-            var visible by remember { mutableStateOf(true) }
-            GruckusTVVolumeTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    shape = RectangleShape
-                ) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        VolumeDisplay(
-                            volume = volume,
-                            visible = visible
-                        )
-                    }
-                }
-            }
-            // Register receiver for volume changes
-            volumeReceiver = object : BroadcastReceiver() {
-                override fun onReceive(context: Context?, intent: Intent?) {
-                    val newVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                    volume = newVolume
-                }
-            }
-            val filter = IntentFilter("android.media.VOLUME_CHANGED_ACTION")
-            registerReceiver(volumeReceiver, filter)
-        }
+        // Start the overlay service
+        val intent = Intent(this, VolumeOverlayService::class.java)
+        startForegroundService(intent)
+        // Optionally finish MainActivity if you don't want a UI here
+        finish()
     }
 
     override fun onDestroy() {
