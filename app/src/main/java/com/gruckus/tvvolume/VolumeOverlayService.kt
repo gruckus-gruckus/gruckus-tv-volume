@@ -104,13 +104,15 @@ class VolumeOverlayService : Service() {
 
     private fun fadeOutOverlay() {
         overlayView?.let { view ->
-            val fadeOut = AlphaAnimation(1f, 0f)
-            fadeOut.duration = 500 // 0.5 second fade out
-            fadeOut.fillAfter = true
-            view.startAnimation(fadeOut)
-            handler.postDelayed({
-                view.visibility = View.GONE
-            }, fadeOut.duration)
+            view.clearAnimation() // Ensure previous animation is cleared
+            view.animate()
+                .alpha(0f)
+                .setDuration(750)
+                .withEndAction {
+                    view.visibility = View.GONE
+                    view.alpha = 1f // Reset alpha for next show
+                }
+                .start()
         }
     }
 
