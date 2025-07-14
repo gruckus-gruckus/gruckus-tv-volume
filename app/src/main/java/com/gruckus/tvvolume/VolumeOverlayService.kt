@@ -1,5 +1,7 @@
 package com.gruckus.tvvolume
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -28,6 +30,7 @@ class VolumeOverlayService : Service() {
         super.onCreate()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        createNotificationChannel() // Ensure channel exists before startForeground
         showOverlay()
         registerVolumeReceiver()
         val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
@@ -37,6 +40,18 @@ class VolumeOverlayService : Service() {
             .setContentText("Overlay is running")
             .setSmallIcon(android.R.drawable.ic_lock_silent_mode)
             .build())
+    }
+
+    private fun createNotificationChannel() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "volume_overlay_channel",
+                "Volume Overlay",
+                NotificationManager.IMPORTANCE_LOW
+            )
+            val manager = getSystemService(NotificationManager::class.java)
+            manager.createNotificationChannel(channel)
+        }
     }
 
     private fun showOverlay() {
