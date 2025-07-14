@@ -9,12 +9,15 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.PixelFormat
 import android.media.AudioManager
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
+import android.view.animation.AlphaAnimation
 import android.widget.TextView
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -25,6 +28,8 @@ class VolumeOverlayService : Service() {
     private var volumeReceiver: BroadcastReceiver? = null
     private lateinit var audioManager: AudioManager
     private lateinit var volumeText: TextView
+    private val handler = Handler(Looper.getMainLooper())
+    private var hideRunnable: Runnable? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -86,10 +91,45 @@ class VolumeOverlayService : Service() {
         volumeText.text = "Volume: $volume"
     }
 
+    private fun showOverlayInstantly() {
+        if (overlayView == null) {
+            showOverlay()
+        } else {
+            overlayView!!.visibility = View.VISIBLE
+            overlayView!!.alpha = 1f
+        }
+    }
+
+    private fun fadeOutOverlay() {
+        overlayView?.let { view ->
+            val fadeOut = AlphaAnimation(1f, 0f)
+            fadeOut.duration = 500 // 0.5 second fade out
+            fadeOut.fillAfter = true
+            view.startAnimation(fadeOut)
+            handler.postDelayed({
+                view.visibility = View.GONE
+            }, fadeOut.duration)
+        }
+    }
+
+    private fun scheduleHideOverlay() {
+        hideRunnable?.let { handler.removeCallbacks(it) }
+        hideRunnable = Runnable {
+            fadeOutOverlay()
+        }
+        handler.postDelayed(hideRunnable!!, 1000) // 1 second
+    }
+
+    private fun onVolumeChanged() {
+        updateVolumeText()
+        showOverlayInstantly()
+        scheduleHideOverlay()
+    }
+
     private fun registerVolumeReceiver() {
         volumeReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                updateVolumeText()
+                onVolumeChanged()
                 val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
                 Log.d("LOGASDF", "Current volume on event: $currentVolume")
             }
@@ -100,6 +140,7 @@ class VolumeOverlayService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        hideRunnable?.let { handler.removeCallbacks(it) }
         if (overlayView != null) {
             windowManager.removeView(overlayView)
             overlayView = null
