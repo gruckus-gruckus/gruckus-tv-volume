@@ -36,8 +36,10 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalTvMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Request SYSTEM_ALERT_WINDOW permission if not granted
+        // For sideloaded use: show a message if overlay permission is not granted
         if (!android.provider.Settings.canDrawOverlays(this)) {
+            // Show a simple message or toast to instruct the user
+            android.widget.Toast.makeText(this, "Please grant overlay permission in system settings for volume overlay to work.", android.widget.Toast.LENGTH_LONG).show()
             val intent = Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 android.net.Uri.parse("package:" + packageName))
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -46,7 +48,7 @@ class MainActivity : ComponentActivity() {
         // Start the overlay service
         val intent = Intent(this, VolumeOverlayService::class.java)
         startForegroundService(intent)
-        // Optionally finish MainActivity if you don't want a UI here
+        // Finish MainActivity so only overlay runs
         finish()
     }
 

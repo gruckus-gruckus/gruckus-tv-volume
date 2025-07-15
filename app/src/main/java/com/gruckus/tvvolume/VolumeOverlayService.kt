@@ -64,11 +64,12 @@ class VolumeOverlayService : Service() {
     private fun showOverlay() {
         // Check SYSTEM_ALERT_WINDOW permission before showing overlay
         if (!android.provider.Settings.canDrawOverlays(this)) {
-            val intent = Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                android.net.Uri.parse("package:" + packageName))
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(intent)
-            Log.e("VolumeOverlayService", "SYSTEM_ALERT_WINDOW permission not granted. Requesting permission.")
+            // For sideloaded use: show a notification or log to instruct the user
+            Log.e("VolumeOverlayService", "Overlay permission not granted. Please grant it in system settings.")
+            val toastIntent = Intent(this, MainActivity::class.java)
+            toastIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(toastIntent)
+            stopSelf()
             return
         }
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
