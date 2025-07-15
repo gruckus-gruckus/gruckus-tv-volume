@@ -30,6 +30,7 @@ class VolumeOverlayService : Service() {
     private lateinit var volumeText: TextView
     private val handler = Handler(Looper.getMainLooper())
     private var hideRunnable: Runnable? = null
+    private var lastVolume: Int = -1
 
     override fun onCreate() {
         super.onCreate()
@@ -40,7 +41,8 @@ class VolumeOverlayService : Service() {
         showOverlayInstantly()
         scheduleHideOverlay()
         registerVolumeReceiver()
-        val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        lastVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        val currentVolume = lastVolume
         Log.d("LOGASDF", "Current volume at start: $currentVolume")
         startForeground(1, NotificationCompat.Builder(this, "volume_overlay_channel")
             .setContentTitle("Volume Overlay")
@@ -126,6 +128,9 @@ class VolumeOverlayService : Service() {
     }
 
     private fun onVolumeChanged() {
+        val newVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        if (newVolume == lastVolume) return
+        lastVolume = newVolume
         updateVolumeText()
         showOverlayInstantly()
         scheduleHideOverlay()
