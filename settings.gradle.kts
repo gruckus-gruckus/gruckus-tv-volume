@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Gruckus TV Volume"
+rootProject.name = "Gruckus TV-Soundbar Friend"
 include(":app")
