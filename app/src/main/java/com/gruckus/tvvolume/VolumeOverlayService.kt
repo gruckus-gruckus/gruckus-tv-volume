@@ -7,7 +7,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
+import android.os.Build
 import android.media.AudioManager
 import android.os.Handler
 import android.os.IBinder
@@ -37,6 +39,9 @@ class VolumeOverlayService : Service() {
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         createNotificationChannel() // Ensure channel exists before startForeground
+        // Promote to a foreground service first so we satisfy the 5-second
+        // startForeground() deadline even if overlay setup bails out below.
+        startForegroundCompat()
         showOverlay()
         showOverlayInstantly()
         scheduleHideOverlay()
@@ -44,11 +49,19 @@ class VolumeOverlayService : Service() {
         lastVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
         val currentVolume = lastVolume
         Log.d("LOGASDF", "Current volume at start: $currentVolume")
-        startForeground(1, NotificationCompat.Builder(this, "volume_overlay_channel")
+    }
+
+    private fun startForegroundCompat() {
+        val notification = NotificationCompat.Builder(this, "volume_overlay_channel")
             .setContentTitle("Volume Overlay")
             .setContentText("Overlay is running")
             .setSmallIcon(android.R.drawable.ic_lock_silent_mode)
-            .build())
+            .build()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(1, notification)
+        }
     }
 
     private fun createNotificationChannel() {

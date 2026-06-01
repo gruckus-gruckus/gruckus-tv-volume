@@ -14,6 +14,7 @@
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
@@ -35,7 +36,11 @@
         <service
             android:name=".VolumeOverlayService"
             android:exported="false"
-            android:foregroundServiceType="mediaProjection" />
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Displays an on-screen volume-level overlay on Android TV in response to remote volume key presses; must stay alive in the background to react instantly to volume changes." />
+        </service>
         <receiver android:name=".BootReceiver"
             android:enabled="true"
             android:exported="true">
