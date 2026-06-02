@@ -46,7 +46,7 @@ class VolumeOverlayService : Service() {
         registerVolumeReceiver()
         lastVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
         val currentVolume = lastVolume
-        Log.d("LOGASDF", "Current volume at start: $currentVolume")
+        Log.d("VolumeOverlayService", "Current volume at start: $currentVolume")
     }
 
     private fun startForegroundCompat() {
@@ -155,7 +155,7 @@ class VolumeOverlayService : Service() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 onVolumeChanged()
                 val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
-                Log.d("Gruckus volume", "Current volume on event: $currentVolume")
+                Log.d("VolumeOverlayService", "Current volume on event: $currentVolume")
             }
         }
         val filter = IntentFilter("android.media.VOLUME_CHANGED_ACTION")
