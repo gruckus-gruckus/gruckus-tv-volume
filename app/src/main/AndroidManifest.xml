@@ -19,8 +19,9 @@
 
     <application
         android:allowBackup="true"
-        android:banner="@drawable/banner"
-        android:icon="@mipmap/ic_launcher"
+        android:banner="@drawable/gruckus_smiley_banner"
+        android:icon="@mipmap/gruckus_smiley_logo"
+        android:roundIcon="@mipmap/gruckus_smiley_logo_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.GruckusTVVolume">
