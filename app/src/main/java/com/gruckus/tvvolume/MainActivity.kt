@@ -36,19 +36,21 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalTvMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // For sideloaded use: show a message if overlay permission is not granted
         if (!android.provider.Settings.canDrawOverlays(this)) {
-            // Show a simple message or toast to instruct the user
+            // Permission missing: ask the user to grant it, then bail out WITHOUT
+            // starting the service. Starting it here would let the service bounce
+            // back to this activity and spam the toast/settings screen in a loop.
             android.widget.Toast.makeText(this, "Please grant overlay permission in system settings for volume overlay to work.", android.widget.Toast.LENGTH_LONG).show()
             val intent = Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 android.net.Uri.parse("package:" + packageName))
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(intent)
+            finish()
+            return
         }
-        // Start the overlay service
+        // Permission granted: start the overlay service and get out of the way.
         val intent = Intent(this, VolumeOverlayService::class.java)
         startForegroundService(intent)
-        // Finish MainActivity so only overlay runs
         finish()
     }
 

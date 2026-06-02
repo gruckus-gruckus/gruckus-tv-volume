@@ -77,13 +77,12 @@ class VolumeOverlayService : Service() {
     }
 
     private fun showOverlay() {
-        // Check SYSTEM_ALERT_WINDOW permission before showing overlay
+        // Check SYSTEM_ALERT_WINDOW permission before showing overlay.
         if (!android.provider.Settings.canDrawOverlays(this)) {
-            // For sideloaded use: show a notification or log to instruct the user
-            Log.e("VolumeOverlayService", "Overlay permission not granted. Please grant it in system settings.")
-            val toastIntent = Intent(this, MainActivity::class.java)
-            toastIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(toastIntent)
+            // Just stop. Do NOT launch MainActivity here: the activity restarts
+            // this service, which would bounce back here and loop. MainActivity
+            // is responsible for prompting the user to grant the permission.
+            Log.e("VolumeOverlayService", "Overlay permission not granted; stopping service.")
             stopSelf()
             return
         }
@@ -110,12 +109,16 @@ class VolumeOverlayService : Service() {
     }
 
     private fun showOverlayInstantly() {
-        if (overlayView == null) {
-            showOverlay()
-        } else {
-            overlayView!!.visibility = View.VISIBLE
-            overlayView!!.alpha = 1f
-        }
+        // If the overlay never attached (e.g. permission missing), do nothing
+        // rather than re-running showOverlay() and risking another loop.
+        val view = overlayView ?: return
+        // Cancel any in-flight fade-out animator; otherwise it keeps driving
+        // alpha back to 0 and hides the view right after we show it, which
+        // looks like the overlay lagging or not appearing on a volume change.
+        view.animate().cancel()
+        view.clearAnimation()
+        view.visibility = View.VISIBLE
+        view.alpha = 1f
     }
 
     private fun fadeOutOverlay() {
