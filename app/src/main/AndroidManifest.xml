@@ -10,7 +10,7 @@
         android:required="true" />
     <uses-feature
         android:name="android.hardware.dpad"
-        android:required="true" />
+        android:required="false" />
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
